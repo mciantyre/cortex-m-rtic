@@ -174,3 +174,39 @@ up the resource struct. Here are two examples on how this can be done:
 ``` rust
 {{#include ../../../../examples/destructure.rs}}
 ```
+
+## Custom runtime
+
+By default, RTIC depends on the [`cortex-m-rt` crate][cortex-m-rt], which
+provides startup code an a minimal runtime for Cortex-M processors. After
+preparing memory and the interrupt table, `cortex-m-rt` calls RTIC's `main()`
+function, which then calls your application code. RTIC uses `cortex-m-rt` by
+default, so that you don't need to worry about how the processor boots.
+
+Although `cortex-m-rt` tries to support many Cortex-M processors, the crate
+doesn't support all use-cases on all processors. RTIC requires *something* to
+prepare the system and call `main()`, and that doesn't need to come from
+`cortex-m-rt`. To use RTIC on processors that are not supported by
+`cortex-m-rt`, RTIC lets you supply your own, custom runtime crate.
+
+The supplied runtime crate must provide *at least* the same guarantees as
+`cortex-m-rt`. Study the `cortex-m-rt` crate to understand those
+responsibilities. To supply a custom runtime crate, you should disable
+RTIC's default features, and also depend on your custom runtime crate:
+
+``` toml
+[dependencies]
+cortex-m-rtic = { default-features = false, version = ... }
+my-custom-rt = "0.1"
+```
+
+In the example above, `my-custom-rt` is will replace `cortex-m-rt` as the
+runtime. The `default-features = false` in `cortex-m-rtic` disables RTIC's
+default feature, `"rt"`, which links `cortex-m-rt`.
+
+Note that `default-features = false` will disable *all* default RTIC features.
+You are responsible for re-enabling any additional RTIC features. Consult the
+RTIC features for more information on what is available, and what is enabled
+by default.
+
+[cortex-m-rt]: https://crates.io/crates/cortex-m-rt
